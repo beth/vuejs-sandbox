@@ -1,76 +1,25 @@
 <template>
   <div>
-    <app-header 
-      v-bind:get-stories="getStories"
-      v-bind:filter-stories="filterStories"
-      v-bind:filter-term="filterTerm"
-    ></app-header>
-    <story-list v-bind:stories="displayedStories"></story-list>
+    <app-header></app-header>
+    <router-view></router-view>
   </div>
 </template>
 
 <script>
+import VueRouter from 'vue-router'
 import AppHeader from './AppHeader.vue'
 import StoryList from './StoryList.vue'
 
+const routes = [ 
+  { path: '/newest' , component: StoryList, props: {storyType: 'newstories'} },
+  { path: '/best' , component: StoryList, props: {storyType: 'beststories'} },
+  { path: '/top' , component: StoryList, props: {storyType: 'topstories'} }
+]
+
 export default {
+  router: new VueRouter({ routes }),
   components: {
-    'app-header': AppHeader,
-    'story-list': StoryList,
-  },
-  data: function() {
-    return {
-      storyType: '',
-      filterTerm: '',
-      displayedStories: [],
-      dataStories: [
-        {
-          title: 'Hi Dan',
-          points: 10,
-          author: 'Daniel Thareja'
-        },
-        {
-          title: 'Hi Beth',
-          points: 100,
-          author: 'Beth Johnson'
-        },
-        {
-          title: 'Hello World',
-          points: 2,
-          author: 'author'
-        }
-      ]      
-    }
-  },
-  methods: {
-    getStories(type) {
-      if (this.storyType === type) {
-        return
-      }
-      fetch(`https://hacker-news.firebaseio.com/v0/${type}.json`)
-      .then((res) => res.json())
-      .then((ids) => Promise.all(
-        ids.slice(0, 20).map(id => 
-          fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`)
-          .then((res) => res.json())
-        )
-      ))
-      .then(stories => {
-        this.dataStories = stories
-          .filter(story => story)
-          .map(story => ({ id: story.id, author: story.by, points: story.score, title: story.title }))
-        this.storyType = type
-        this.filterStories(this.filterTerm)
-      })
-      .catch(err => console.error(err));
-    },
-    filterStories(term) {
-      this.filterTerm = term;
-      this.displayedStories = this.dataStories.filter(story => story.title.toLowerCase().includes(term.toLowerCase()))
-    },
-  },
-  mounted: function () {
-    this.getStories('topstories')
+    'app-header': AppHeader
   }
 }
 </script>
@@ -101,5 +50,12 @@ li {
 
 a {
   color: #42b983;
+  padding: 0px 5px;
+}
+
+.router-link-active {
+  background-color: #42b983;
+  color: white;
+  border-radius: 5px;
 }
 </style>
